@@ -2,6 +2,8 @@
 densidade_gamma_mean <- function(x, k, theta, n) {
   # k é shape
   # theta é scale
+  # mu = k * theta
+  # var = k * theta^2/n
   k <- n * k
   theta <- theta / n
   x^(k - 1) * exp(-x / theta) / (theta^k * gamma(k))
