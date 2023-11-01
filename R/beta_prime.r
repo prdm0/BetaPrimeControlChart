@@ -1,4 +1,7 @@
-rbp <- function(n, a, b, ...) {
+rbp <- function(n, mu, phi, ...) {
+  a <- mu * (phi + 1)
+  b <- phi + 2
+
   x <- qbeta(
     runif(n = n, min = 0, max = 1),
     shape1 = a,
@@ -8,48 +11,41 @@ rbp <- function(n, a, b, ...) {
   x / (1 - x)
 }
 
-# Distribuição Beta Prime
-densidade_beta_prime_mean <- function(x, mu, phi) {
-  n <- length(x)
+densidade_beta_prime <- function(x, mu, phi) {
+  1 / beta(mu * (phi + 1), phi + 2) * x^(mu * (phi + 1) - 1) * (1 + x)^(-(mu + 1) * (phi + 1) - 1)
+}
+
+densidade_beta_prime_media <- function(x, mu, phi) {
   x <- sum(x)
+  n <- length(x)
 
-  a <- mu * (phi + 1)
-  b <- phi + 2
+  lambda <- (n * mu * (mu + phi^2 - 2 * phi + n * mu * phi - 2 * n * mu + 1)) / ((phi - 1) * (mu + phi - 1))
+  delta <- (2 * mu + phi^2 - phi + n * mu * phi - 2 * n * mu) / (mu + phi - 1)
 
-  phi <- (n * a * (a + b^2 - 2 * b + n * a * b - 2 * n * a + 1)) / ((b - 1) * (a + b - 1))
-  delta <- (2 * a + b^2 - b + n * a * b - 2 * n * a) / (a + b - 1)
-
-  n * (1 / beta(phi, delta) * x^(phi - 1) / (1 + x)^(phi + delta))
+  n * densidade_beta_prime(x = x, mu = lambda, phi = delta)
 }
 
-densidade_beta_prime_mean <- Vectorize(FUN = densidade_beta_prime_mean, vectorize.args = c("x"))
 
+densidade_beta_prime_media <- Vectorize(FUN = densidade_beta_prime_media, vectorize.args = c("x"))
 
-random_beta_prime_mean <- function(n_sample, n, mu, phi) {
-  a <- mu * (phi + 1)
-  b <- phi + 2
-
-  phi <- (n * a * (a + b^2 - 2 * b + n * a * b - 2 * n * a + 1)) / ((b - 1) * (a + b - 1))
-  delta <- (2 * a + b^2 - b + n * a * b - 2 * n * a) / (a + b - 1)
-
-  observacoes_mean <- function() {
-    rbp(n = n, a = phi, b = delta)
+random_beta_prime <- function(n_sample, n, mu, phi) {
+  observacoes <- function() {
+    rbp(n = n, mu = mu, phi = phi)
   }
-
-  lapply(X = 1L:n_sample, FUN = \(i) observacoes_mean())
+  lapply(X = 1L:n_sample, FUN = \(i) observacoes())
 }
 
-
-dados <- rbp(n = 1000L, a = 0.5, b = 0.3)
+n <- 100
+dados <- random_beta_prime(n_sample = 200, n = n, mu = 0.07, phi = 10.5)
 
 log_like <- function(par, x) {
-  a <- par[1]
-  b <- par[2]
-  -sum(log(densidade_beta_prime(x = x, a = a, b = b)))
+  mu <- par[1]
+  phi <- par[2]
+  -sum(log(densidade_beta_prime_media(x = unlist(x), mu = mu, phi = phi)))
 }
 
 optim(
-  par = c(1, 1),
+  par = c(1.5, 1.5),
   fn = log_like,
   x = dados,
   method = "Nelder-Mead"
