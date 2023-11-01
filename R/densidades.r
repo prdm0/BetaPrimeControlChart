@@ -17,9 +17,9 @@ random_gamma_mean <- function(n_sample, n, k, theta) {
   sapply(X = 1L:n_sample, FUN = \(i) observacoes_mean())
 }
 
-n <- 10
+n <- 50
 
-dados <- random_gamma_mean(n_sample = 10000, n = n, k = 3, theta = 5.5)
+dados <- random_gamma_mean(n_sample = 10000, n = n, k = 1, theta = 0.5)
 
 log_like_gamma <- function(par, x, n) {
   fdp <- function(par, x) {
@@ -32,7 +32,5 @@ log_like_gamma <- function(par, x, n) {
 
 optim(par = c(1.5, 1.5), fn = log_like_gamma, n = n, x = dados, method = "Nelder-Mead")
 
-integrate(f = \(x) densidade_gamma_mean(x = x, k = 1, theta = 1, n = 1), lower = 0, upper = 100)
-
-
-integrate(f = \(x) x * densidade_gamma_mean(x = x, alpha = 1, beta = 3, n = 2), lower = 0, upper = 100)
+# integrate(f = \(x) densidade_gamma_mean(x = x, k = 1, theta = 1, n = 1), lower = 0, upper = 100)
+# integrate(f = \(x) x * densidade_gamma_mean(x = x, alpha = 1, beta = 3, n = 2), lower = 0, upper = 100)
