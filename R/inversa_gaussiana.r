@@ -1,4 +1,4 @@
-pak::pkg_install("statmod")
+# pak::pkg_install("statmod")
 
 # Distribuição Gamma
 densidade_inversa_gaussiana_mean <- function(x, mu, lambda) {
