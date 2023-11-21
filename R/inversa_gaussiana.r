@@ -1,11 +1,12 @@
-# pak::pkg_install("statmod")
+box::use(
+  statmod
+)
 
-# Distribuição Gamma
-densidade_inversa_gaussiana_mean <- function(x, mu, lambda) {
-  # mu é escala
-  # lambda é forma
-  # E(\olverline{X}) = \mu
-  # Var(\olverline{X}) = \mu^3 / \lambda
+# Densidade da variável aleatória x barra quando x segue a distribuicao inversa
+# gaussiana com mu e lambda, em que mu eh parametro de localizacao e lambda eh
+# parametro de escala.
+#' @export
+d_xbarra_inversa_gaussiana <- function(x, mu, lambda) {
   n <- length(x)
   x <- mean(x)
 
@@ -14,33 +15,28 @@ densidade_inversa_gaussiana_mean <- function(x, mu, lambda) {
   sqrt(lambda / (2 * pi * x^3)) * exp(-(lambda * (x - mu)^2) / (2 * mu^2 * x))
 }
 
-densidade_inversa_gaussiana_mean <- Vectorize(FUN = densidade_inversa_gaussiana_mean, vectorize.args = c("x"))
-
-# Dados de uma v.a. com distribuição gamma
-random_inversa_gaussiana <- function(n_sample, n, mu, lambda) {
+# Gera observacoes de uma variavel aleatoria com distribuicao inversa gaussiana
+#' @export
+r_inversa_gaussiana <- function(n_lotes, n, mu, lambda, lotes = TRUE) {
   observacoes <- function() {
-    statmod::rinvgauss(n = n, mean = mu, shape = lambda)
+    statmod$rinvgauss(n = n, mean = mu, shape = lambda)
   }
-  lapply(X = 1L:n_sample, FUN = \(i) observacoes())
+
+  obs <- lapply(X = 1L:n_lotes, FUN = \(i) observacoes())
+
+  if (lotes) {
+    return(obs)
+  } else {
+    return(sapply(X = obs, FUN = mean))
+  }
 }
 
-n <- 3
-
-dados <- random_inversa_gaussiana(n_sample = 1000, n = n, mu = 10, lambda = 0.9)
-
+#' @export
 log_like_inversa_gaussiana <- function(par, x) {
   fdp <- function(par, x) {
     mu <- par[1L]
     lambda <- par[2L]
-    densidade_inversa_gaussiana_mean(x = x, mu = mu, lambda = lambda)
+    d_xbarra_inversa_gaussiana(x = unlist(x), mu = mu, lambda = lambda)
   }
   -sum(log(fdp(par, x)))
 }
-
-optim(par = c(1.5, 1.5), fn = log_like_inversa_gaussiana, x = dados, method = "Nelder-Mead")
-
-# integrate(f = \(x) densidade_gamma_mean(x = x, k = 1, theta = 1), lower = 0, upper = 100)
-
-# E <- integrate(f = \(x) x * densidade_inversa_gaussiana_mean(x = x, mu = 10, lambda = 1), lower = 0, upper = Inf)$value
-# E2 <- integrate(f = \(x) x^2 * densidade_inversa_gaussiana_mean(x = x, mu = 10, lambda = 1), lower = 0, upper = Inf)$value
-# E2 - E^2
