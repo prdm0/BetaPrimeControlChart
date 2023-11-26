@@ -52,13 +52,14 @@ limits_gamma <-
   function(data = NULL,
            alpha = 0.0027,
            mu = NULL,
-           k = NULL) {
+           k = NULL,
+           ...) {
     if (!is.matrix(data)) {
       stop("The object data must be a matrix!")
     }
 
     if (is.null(mu) || is.null(k)) {
-      mle <- mle_gamma(data = data)
+      mle <- mle_gamma(data = data, ...)
       mu <- mle$par[1L]
       k <- mle$par[2L]
     }
@@ -69,13 +70,13 @@ limits_gamma <-
     return(list(li = r[1L], ls = r[2L], mu_hat = mu, k_hat = k))
   }
 
-stats_gamma <- function(data, alpha = 0.0027, mu = NULL, k = NULL) {
+stats_gamma <- function(data, alpha = 0.0027, mu = NULL, k = NULL, ...) {
   if (!is.matrix(data)) {
     stop("The object data must be a matrix!")
   }
   n <- ncol(data)
   vec_sum <- apply(X = data, FUN = \(i) mean(i), MARGIN = 1L)
-  limites <- limits_gamma(data = data, alpha = alpha, mu = mu, k = k)
+  limites <- limits_gamma(data = data, alpha = alpha, mu = mu, k = k, ...)
   fora <- sum(vec_sum < limites$li) + sum(vec_sum > limites$ls)
   alpha_hat <- fora / length(vec_sum)
   list(
@@ -91,7 +92,7 @@ stats_gamma <- function(data, alpha = 0.0027, mu = NULL, k = NULL) {
 }
 
 set.seed(0)
-dados <- r_gamma(n_lotes = 10000, n = 100, mu = 1, k = 1.7)
+dados <- r_gamma(n_lotes = 10000, n = 200, mu = 1, k = 1.7)
 
 # Estimando os parâmetros por maxima verossimilhança
 stats_gamma(data = dados, alpha = 0.0027)

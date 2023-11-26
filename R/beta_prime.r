@@ -67,13 +67,14 @@ limits_beta_prime <-
   function(data = NULL,
            alpha = 0.0027,
            mu = NULL,
-           phi = NULL) {
+           phi = NULL,
+           ...) {
     if (!is.matrix(data)) {
       stop("The object data must be a matrix!")
     }
 
     if (is.null(mu) || is.null(phi)) {
-      mle <- mle_beta_prime(data = data)
+      mle <- mle_beta_prime(data = data, ...)
       mu <- mle$par[1L]
       phi <- mle$par[2L]
     }
@@ -84,13 +85,13 @@ limits_beta_prime <-
     return(list(li = r[1L], ls = r[2L], mu_hat = mu, phi_hat = phi))
   }
 
-stats_beta_prime <- function(data, alpha = 0.0027, mu = NULL, phi = NULL) {
+stats_beta_prime <- function(data, alpha = 0.0027, mu = NULL, phi = NULL, ...) {
   if (!is.matrix(data)) {
     stop("The object data must be a matrix!")
   }
   n <- ncol(data)
   vec_sum <- apply(X = data, FUN = \(i) mean(i), MARGIN = 1L)
-  limites <- limits_beta_prime(data = data, alpha = alpha, mu = mu, phi = phi)
+  limites <- limits_beta_prime(data = data, alpha = alpha, mu = mu, phi = phi, ...)
   fora <- sum(vec_sum < limites$li) + sum(vec_sum > limites$ls)
   alpha_hat <- fora / length(vec_sum)
   list(
